@@ -4,8 +4,6 @@
 
 USERNAME=theusername        # for example : root
 
-PASSWORD=thepass            # for example: somethingmorecomplexplease
-
 HOST=thehost                # your host, eg: ansolas.de
 
 REMOTEDIR=/                 # remote dir, /srv/users/daslicht/apps/homepage/public
@@ -17,14 +15,19 @@ VOLUMENAME=thevolumename    # this sets the name the mounted folder
 MOUNTROOT=~/volumes/
 MOUNT=$MOUNTROOT/$VOLUMENAME
 
+# Execute the SSHFS Mount command
+MountVolume() {
+  echo "mounting the volume..."
+  sshfs -o volname=$VOLUMENAME -o local $USERNAME@$HOST:$REMOTEDIR $MOUNT
+}
+
 # Check if Mount  Folder exists, if not create it
 # when done call Mount()
 CheckIfMountFolderExists() {
   if [ -d "$MOUNT" ]; then
-    echo "exists, call mount"
-    Mount
+    MountVolume
   else
-    echo "not exists"
+    echo "creating mount folder..."
     mkdir $MOUNT
   fi
 }
@@ -33,10 +36,9 @@ CheckIfMountFolderExists() {
 # Check if Mount Root Folder exists, if not create and hide it
 CheckIfMountROOTFolderExists() {
   if [ -d "$MOUNTROOT" ]; then
-    echo "exists, call CheckIfMountFolderExists"
     CheckIfMountFolderExists
   else
-    echo "not exists"
+    echo "creating mount root folder..."
     mkdir $MOUNTROOT
     chflags hidden $MOUNTROOT # Hide folder
     CheckIfMountFolderExists
@@ -44,11 +46,6 @@ CheckIfMountROOTFolderExists() {
 }
 CheckIfMountROOTFolderExists
 
-
-# Execute the SSHFS Mount command
-Mount() {
-  echo $PASSWORD | sshfs -o password_stdin -o volname=$VOLUMENAME -o local $USERNAME@$HOST:$REMOTEDIR $MOUNT
-}
 
 # guess what :)
 echo "done"
